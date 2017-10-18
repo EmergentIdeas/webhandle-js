@@ -4,6 +4,8 @@ let serveStatic = require('serve-static')
 let commingle = require('commingle')
 let _ = require('underscore')
 let fs = require('fs')
+let cookieParser = require('cookie-parser');
+let bodyParser = require('body-parser');
 
 var express = require('express');
 var router = express.Router();
@@ -43,12 +45,29 @@ let webhandle = {
 	
 	init: function(app) {
 		if(this.profile == profiles.SIMPLE) {
+			
+			app.use(bodyParser.json());
+			app.use(bodyParser.urlencoded({
+			    extended: false
+			}));
+			app.use(cookieParser());
+			
+						
 			app.set('view engine', 'jade');
 			
 			addRequestLogging(app)
 			require('./lib/templating/tripartite-request-scoped-renderer') (app, this)
 			this.initStaticServers(app)
 			app.use(this.router)
+			
+			
+			// catch 404 and forward to error handler
+			app.use(function(req, res, next) {
+			    let err = new Error('Not Found');
+			    err.status = 404;
+			    next(err);
+			});
+			
 		}
 		
 	},

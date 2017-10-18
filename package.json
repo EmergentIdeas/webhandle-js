@@ -1,10 +1,14 @@
 {
   "name": "webhandle",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A micro-cms toolkit",
   "main": "webhandle.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "webhandle-server-start": "./server-start.js"
+  },
+  "bin": {
+    "webhandle-server-start": "./server-start.js"
   },
   "repository": {
     "type": "git",
@@ -28,6 +32,8 @@
     "filter-log": "0.0.3",
     "serve-static": "^1.13.1",
     "tripartite": "^1.0.8",
-    "underscore": "^1.8.3"
+    "underscore": "^1.8.3",
+    "body-parser": "^1.17.2",
+    "cookie-parser": "^1.4.3"
   }
 }
