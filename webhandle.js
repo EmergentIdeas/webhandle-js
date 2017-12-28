@@ -10,6 +10,7 @@ let bodyParser = require('body-parser');
 var express = require('express');
 var router = express.Router();
 
+var pageServer = require('webhandle-page-server')
 
 let logFilter = function(entry) {
 	return entry.level && entry.level >= filog.levels.INFO
@@ -39,9 +40,12 @@ let webhandle = {
 	profile: profiles.SIMPLE,
 	views: [],
 	templateLoaders: [],
+	pagePaths: [],
+	pageServers: [],
 	staticPaths: [],
 	staticServers: [],
 	router: router,
+	projectRoot: null,
 	
 	init: function(app) {
 		if(this.profile == profiles.SIMPLE) {
@@ -58,8 +62,11 @@ let webhandle = {
 			addRequestLogging(app)
 			require('./lib/templating/tripartite-request-scoped-renderer') (app, this)
 			this.initStaticServers(app)
+			
 			app.use(this.router)
 			
+			
+			this.initPageServers(app)
 			
 			// catch 404 and forward to error handler
 			app.use(function(req, res, next) {
@@ -91,13 +98,27 @@ let webhandle = {
 		this.staticServers.push(serveStatic(path))
 	},
 	
+	addPageDir: function(path) {
+		this.pagePaths.push(path)
+		this.pageServers.push(pageServer(path))
+	},
+	
 	initStaticServers: function(app) {
 		app.use(function(req, res, next) {
 			commingle([...webhandle.staticServers])(req, res, () => {
 				next()
 			})
 		});
+	},
+	
+	initPageServers: function(app) {
+		app.use(function(req, res, next) {
+			commingle([...webhandle.pageServers])(req, res, () => {
+				next()
+			})
+		});
 	}
+
 }
 
 

@@ -5,8 +5,10 @@ module.exports = function(projectRoot) {
 
     let app = express();
     let wh = require('./webhandle')
+	wh.projectRoot = projectRoot
 
-    wh.addTemplateDir(path.join(projectRoot, 'views'))
+	wh.addTemplateDir(path.join(projectRoot, 'views'))
+	wh.addPageDir(path.join(projectRoot, 'views'))
     wh.addStaticDir(path.join(projectRoot, 'public'))
     wh.init(app)
 
