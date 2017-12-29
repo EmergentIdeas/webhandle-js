@@ -1,20 +1,26 @@
 let express = require('express');
 let path = require('path');
+const fs = require('fs')
+const pageServer = require('webhandle-page-server')
 
 module.exports = function(projectRoot) {
 
-    let app = express();
+    let app = express()
     let wh = require('./webhandle')
-	wh.projectRoot = projectRoot
+    wh.projectRoot = projectRoot
 
-	wh.addTemplateDir(path.join(projectRoot, 'views'))
-	wh.addPageDir(path.join(projectRoot, 'views'))
+    wh.addTemplateDir(path.join(projectRoot, 'views'))
+    wh.addTemplateDir(path.join(projectRoot, 'pages'))
+
     wh.addStaticDir(path.join(projectRoot, 'public'))
     wh.init(app)
 
 
     require.main.require('./server-js/add-routes')(wh.router)
 
+
+    wh.pageServer = pageServer(path.join(projectRoot, 'pages'))
+    wh.router.use(wh.pageServer)
 
     // error handler
     app.use(function(err, req, res, next) {
@@ -26,5 +32,5 @@ module.exports = function(projectRoot) {
         res.status(err.status || 500);
         res.render('error');
     });
-	return app
+    return app
 }
