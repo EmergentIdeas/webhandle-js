@@ -73,7 +73,7 @@ let webhandle = {
 			app.use(this.router)
 			
 			this.pageServer = pageServer(path.join(this.projectRoot, 'pages'))
-		    this.router.use(this.pageServer)
+		    app.use(this.pageServer)
 			
 			// Add code for webhandle menus
 			this.addTemplateDir(path.join(menuLoader.__dirname, 'views'))

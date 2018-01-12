@@ -1,6 +1,6 @@
 {
   "name": "webhandle",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "A micro-cms toolkit",
   "main": "webhandle.js",
   "scripts": {
@@ -31,7 +31,7 @@
     "commingle": "^0.0.3",
     "cookie-parser": "^1.4.3",
     "express": "^4.16.2",
-    "filter-log": "0.0.3",
+    "filter-log": "0.0.4",
     "jade": "^1.11.0",
     "pausing-transform": "^1.0.0",
     "serve-static": "^1.13.1",
