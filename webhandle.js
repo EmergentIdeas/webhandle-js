@@ -6,9 +6,15 @@ let _ = require('underscore')
 let fs = require('fs')
 let cookieParser = require('cookie-parser');
 let bodyParser = require('body-parser');
+let path = require('path');
 
 var express = require('express');
 var router = express.Router();
+
+
+
+const pageServer = require('webhandle-page-server')
+const menuLoader = require('webhandle-menus-1')
 
 let logFilter = function(entry) {
 	return entry.level && entry.level >= filog.levels.INFO
@@ -30,7 +36,6 @@ let addRequestLogging = function(app) {
 }
 
 
-filog.defineProcessor('standard', {}, process.stdout, logFilter)
 let log = filog('webhandle')
 
 
@@ -45,12 +50,18 @@ let webhandle = {
 	
 	init: function(app) {
 		if(this.profile == profiles.SIMPLE) {
+			filog.defineProcessor('standard', {}, process.stdout, logFilter)
 			
 			app.use(bodyParser.json());
 			app.use(bodyParser.urlencoded({
 			    extended: false
 			}));
 			app.use(cookieParser());
+
+			this.addTemplateDir(path.join(this.projectRoot, 'views'))
+		    this.addTemplateDir(path.join(this.projectRoot, 'pages'))
+
+		    this.addStaticDir(path.join(this.projectRoot, 'public'))
 			
 						
 			app.set('view engine', 'jade');
@@ -60,6 +71,13 @@ let webhandle = {
 			this.initStaticServers(app)
 			
 			app.use(this.router)
+			
+			this.pageServer = pageServer(path.join(this.projectRoot, 'pages'))
+		    this.router.use(this.pageServer)
+			
+			// Add code for webhandle menus
+			this.addTemplateDir(path.join(menuLoader.__dirname, 'views'))
+			this.pageServer.preRun.push(menuLoader(path.join(this.projectRoot, 'menus')))
 			
 			
 			// catch 404 and forward to error handler
