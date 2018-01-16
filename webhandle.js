@@ -10,6 +10,8 @@ let path = require('path');
 
 var express = require('express');
 var router = express.Router();
+var multer = require('multer')
+var upload = multer()
 
 
 
@@ -56,7 +58,8 @@ let webhandle = {
 			app.use(bodyParser.urlencoded({
 			    extended: false
 			}));
-			app.use(cookieParser());
+			app.use(upload.any())
+			app.use(cookieParser())
 
 			this.addTemplateDir(path.join(this.projectRoot, 'views'))
 		    this.addTemplateDir(path.join(this.projectRoot, 'pages'))
