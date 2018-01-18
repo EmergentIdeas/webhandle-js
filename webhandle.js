@@ -49,17 +49,21 @@ let webhandle = {
 	staticServers: [],
 	router: router,
 	projectRoot: null,
+	routerPreStatic: express.Router(),
+	routerPreParmParse: express.Router(),
 	
 	init: function(app) {
 		if(this.profile == profiles.SIMPLE) {
 			filog.defineProcessor('standard', {}, process.stdout, logFilter)
-			
-			app.use(bodyParser.json());
+			app.use(this.routerPreParmParse)
+			app.use(bodyParser.json())
 			app.use(bodyParser.urlencoded({
 			    extended: false
 			}));
 			app.use(upload.any())
 			app.use(cookieParser())
+			
+			app.use(this.routerPreStatic)
 
 			this.addTemplateDir(path.join(this.projectRoot, 'views'))
 		    this.addTemplateDir(path.join(this.projectRoot, 'pages'))
