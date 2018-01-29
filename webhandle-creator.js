@@ -14,6 +14,7 @@ var multer = require('multer')
 var upload = multer()
 
 let redirectPreprocessor = require('./lib/conventions/redirect-preprocessing.js')
+let trackerCookie = require('tracker-cookie')
 
 
 
@@ -71,6 +72,7 @@ let creator = function() {
 				}));
 				app.use(upload.any())
 				app.use(cookieParser())
+				app.use(trackerCookie(process.env.trackerSecretKey))
 				
 				app.use(this.routerPreStatic)
 
