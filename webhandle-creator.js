@@ -72,7 +72,9 @@ let creator = function() {
 				}));
 				app.use(upload.any())
 				app.use(cookieParser())
-				app.use(trackerCookie(process.env.trackerSecretKey))
+				if(process.env.trackerSecretKey) {
+					app.use(trackerCookie(process.env.trackerSecretKey))
+				}
 				
 				app.use(this.routerPreStatic)
 
