@@ -28,3 +28,27 @@ You can use either a function or a stream as the filter. Generally, output is
 piped through filters as a whole document, so you'd be able to reparse it with 
 `cheerio` or do any other document level work required.
 
+## session data tracking
+
+Webhandle sets up encrypted signed cookies (using `tracker-cookie`) which will 
+be sent and parsed if used, not otherwise. To set cookie based session 
+information:
+
+```
+res.track({ myKey: myValue }, () => {
+		// callback when encryption is complete
+})
+```
+
+To read the information
+
+```
+req.tracker.myKey
+```
+
+Clear like:
+
+```
+res.track()
+````
+
