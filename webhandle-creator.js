@@ -7,6 +7,7 @@ let fs = require('fs')
 let cookieParser = require('cookie-parser');
 let bodyParser = require('body-parser');
 let path = require('path');
+let tri = require('tripartite')
 
 var express = require('express');
 var router = express.Router();
@@ -58,6 +59,7 @@ let creator = function() {
 		routerPreParmParse: express.Router(),
 		resourceVersion: new Date().getTime(),
 		
+		
 		init: function(app) {
 			if(this.profile == profiles.SIMPLE) {
 				filog.defineProcessor('standard', {}, process.stdout, logFilter)
@@ -88,6 +90,8 @@ let creator = function() {
 				
 				addRequestLogging(app)
 				require('./lib/templating/tripartite-request-scoped-renderer') (app, this)
+				require('./lib/templating/add-simple-template-data-functions') (tri, this)
+				
 				this.initStaticServers(app)
 				
 				app.use(this.router)
