@@ -8,9 +8,9 @@ let cookieParser = require('cookie-parser');
 let bodyParser = require('body-parser');
 let path = require('path');
 let tri = require('tripartite')
+let FileSink = require('file-sink')
 
 var express = require('express');
-var router = express.Router();
 var multer = require('multer')
 var upload = multer()
 
@@ -18,7 +18,12 @@ let redirectPreprocessor = require('./lib/conventions/redirect-preprocessing.js'
 let trackerCookie = require('tracker-cookie')
 
 
-
+let routers = {
+	primary: express.Router(),
+	preStatic: express.Router(),
+	preParmParse: express.Router(),
+	postPages: express.Router()
+}
 
 const pageServer = require('webhandle-page-server')
 const menuLoader = require('webhandle-menus-1')
@@ -53,19 +58,24 @@ let creator = function() {
 		templateLoaders: [],
 		staticPaths: [],
 		staticServers: [],
-		router: router,
+		sinks: {},
+		routers: routers,
+		router: routers.primary,
 		projectRoot: null,
-		routerPreStatic: express.Router(),
-		routerPreParmParse: express.Router(),
+		routerPreStatic: routers.preStatic,
+		routerPreParmParse: routers.preParmParse,
 		resourceVersion: new Date().getTime(),
 		
 		
 		init: function(app) {
 			if(this.profile == profiles.SIMPLE) {
-				filog.defineProcessor('standard', {}, process.stdout, logFilter)
-				app.use(this.routerPreParmParse)
 				
-				this.routerPreParmParse.use(redirectPreprocessor)
+				this.sinks.project = new FileSink(this.projectRoot)
+				
+				filog.defineProcessor('standard', {}, process.stdout, logFilter)
+				app.use(this.routers.preParmParse)
+				
+				this.routers.preParmParse.use(redirectPreprocessor)
 				
 				
 				app.use(bodyParser.json())
@@ -78,7 +88,7 @@ let creator = function() {
 					app.use(trackerCookie(process.env.trackerSecretKey))
 				}
 				
-				app.use(this.routerPreStatic)
+				app.use(this.routers.preStatic)
 
 				this.addTemplateDir(path.join(this.projectRoot, 'views'))
 			    this.addTemplateDir(path.join(this.projectRoot, 'pages'))
@@ -94,10 +104,12 @@ let creator = function() {
 				
 				this.initStaticServers(app)
 				
-				app.use(this.router)
+				app.use(this.routers.primary)
 				
 				this.pageServer = pageServer(path.join(this.projectRoot, 'pages'))
 			    app.use(this.pageServer)
+				
+				app.use(this.routers.postPages)
 				
 				// Add code for webhandle menus
 				this.addTemplateDir(path.join(menuLoader.__dirname, 'views'))
