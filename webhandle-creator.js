@@ -18,11 +18,13 @@ let redirectPreprocessor = require('./lib/conventions/redirect-preprocessing.js'
 let trackerCookie = require('tracker-cookie')
 
 
+
 let routers = {
 	primary: express.Router(),
 	preStatic: express.Router(),
 	preParmParse: express.Router(),
-	postPages: express.Router()
+	postPages: express.Router(),
+	errorHandlers: express.Router()
 }
 
 const pageServer = require('webhandle-page-server')
@@ -59,15 +61,17 @@ let creator = function() {
 		staticPaths: [],
 		staticServers: [],
 		sinks: {},
+		services: {},
 		routers: routers,
 		router: routers.primary,
 		projectRoot: null,
 		routerPreStatic: routers.preStatic,
 		routerPreParmParse: routers.preParmParse,
 		resourceVersion: new Date().getTime(),
+		deferredInitializers: [],
 		
 		
-		init: function(app) {
+		init: function(app, callback) {
 			if(this.profile == profiles.SIMPLE) {
 				
 				this.sinks.project = new FileSink(this.projectRoot)
@@ -115,6 +119,16 @@ let creator = function() {
 				this.addTemplateDir(path.join(menuLoader.__dirname, 'views'))
 				this.pageServer.preRun.push(menuLoader(path.join(this.projectRoot, 'menus')))
 				
+				let mongoDbLoader = require('mongo-db-loader/process-db-info')
+				
+				this.deferredInitializers.push((wh, blank, next) => {
+					webhandle.dbs = webhandle.dbs || {}
+					mongoDbLoader(webhandle.dbs, process.env.dbs, () => {
+						next()
+					})
+				})
+				
+				app.use(this.routers.errorHandlers)
 				
 				// catch 404 and forward to error handler
 				app.use(function(req, res, next) {
@@ -122,8 +136,14 @@ let creator = function() {
 				    err.status = 404;
 				    next(err);
 				});
-				
 			}
+			
+			
+			commingle(this.deferredInitializers)(this, {}, () => {
+				if(typeof callback === 'function') {
+					callback(null, webhandle)
+				}
+			})
 			
 		},
 		

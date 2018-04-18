@@ -2,20 +2,19 @@ let express = require('express');
 let path = require('path');
 const fs = require('fs')
 
-module.exports = function(projectRoot) {
+module.exports = function(projectRoot, callback) {
 
     let app = express()
     let wh = require('./webhandle')
 	app.wh = wh
     wh.projectRoot = projectRoot
 
-    wh.init(app)
-
-
-    require.main.require('./server-js/add-routes')(wh.router)
-
-
-	
+    wh.init(app, () => {
+		require.main.require('./server-js/add-routes')(wh.router)
+		if(callback) {
+			callback(null, wh)
+		}
+	})
 
     // error handler
     app.use(function(err, req, res, next) {
