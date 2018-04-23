@@ -20,11 +20,12 @@ let trackerCookie = require('tracker-cookie')
 
 
 let routers = {
-	primary: express.Router(),
 	preStatic: express.Router(),
 	preParmParse: express.Router(),
+	primary: express.Router(),
 	postPages: express.Router(),
-	errorHandlers: express.Router()
+	errorHandlers: express.Router(),
+	cleanup: express.Router()
 }
 
 const pageServer = require('webhandle-page-server')
@@ -127,15 +128,48 @@ let creator = function() {
 						next()
 					})
 				})
-				
-				app.use(this.routers.errorHandlers)
-				
-				// catch 404 and forward to error handler
+
+				this.routers.errorHandlers.use(function(req, res, next) {
+					if(res.rethrowError) {
+						next(res.rethrowError)
+					}
+					else {
+						next()
+					}
+				})
+				this.routers.cleanup.use(function(req, res, next) {
+					if(res.rethrowError) {
+						next(res.rethrowError)
+					}
+					else {
+						next()
+					}
+				})
+
 				app.use(function(req, res, next) {
 				    let err = new Error('Not Found');
 				    err.status = 404;
 				    next(err);
 				});
+				
+				app.use(function(err, req, res, next) {
+					if(err) {
+						res.rethrowError = err
+					}
+					next()
+				})
+				app.use(this.routers.errorHandlers)
+				
+				app.use(function(err, req, res, next) {
+					if(err) {
+						res.rethrowError = err
+					}
+					next()
+				})
+				
+				app.use(this.routers.cleanup)
+				
+				// catch 404 and forward to error handler
 			}
 			
 			

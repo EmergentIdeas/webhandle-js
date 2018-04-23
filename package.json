@@ -1,6 +1,6 @@
 {
   "name": "webhandle",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "A micro-cms toolkit",
   "main": "webhandle.js",
   "scripts": {
@@ -32,14 +32,14 @@
     "cookie-parser": "^1.4.3",
     "express": "^4.16.2",
     "file-sink": "^1.0.2",
-    "filter-log": "0.0.4",
+    "filter-log": "0.0.5",
     "jade": "^1.11.0",
     "mongo-db-loader": "^1.0.1",
     "multer": "^1.3.0",
     "pausing-transform": "^1.0.0",
     "serve-static": "^1.13.1",
     "tracker-cookie": "^1.0.1",
-    "tripartite": "^1.0.11",
+    "tripartite": "^1.0.12",
     "underscore": "^1.8.3",
     "webhandle-menus-1": "^1.0.3",
     "webhandle-page-server": "^1.0.3"
