@@ -83,8 +83,11 @@ let creator = function() {
 				this.routers.preParmParse.use(redirectPreprocessor)
 				
 				
-				app.use(bodyParser.json())
+				app.use(bodyParser.json({
+					limit: process.env.maxUploadSize || '5mb'
+				}))
 				app.use(bodyParser.urlencoded({
+					limit: process.env.maxUploadSize || '5mb',
 				    extended: false
 				}));
 				app.use(upload.any())
