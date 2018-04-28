@@ -184,14 +184,29 @@ let creator = function() {
 			
 		},
 		
-		addTemplateDir: function(path) {
+		addTemplateDir: function(path, options) {
+			let templateCache
+			if(options.immutable) {
+				templateCache = {}
+			}
+			
 			this.views.push(path)
 			this.templateLoaders.push(function(name, callback) {
+				if(templateCache && name in templateCache) {
+					callback(templateCache[name])
+				}
 				fs.readFile(path + '/' + name + '.tri', function(err, buffer) {
 					if(!err) {
-						callback(buffer.toString())
+						let content = buffer.toString()
+						if(templateCache) {
+							templateCache[name] = content
+						}
+						callback(content)
 					}
 					else {
+						if(templateCache) {
+							templateCache[name] = null
+						}
 						callback(null)
 					}
 				})
