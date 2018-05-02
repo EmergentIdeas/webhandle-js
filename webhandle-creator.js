@@ -186,7 +186,7 @@ let creator = function() {
 		
 		addTemplateDir: function(path, options) {
 			let templateCache
-			if(options.immutable) {
+			if(options && options.immutable) {
 				templateCache = {}
 			}
 			
