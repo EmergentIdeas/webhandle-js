@@ -16,6 +16,7 @@ var upload = multer()
 
 let redirectPreprocessor = require('./lib/conventions/redirect-preprocessing.js')
 let trackerCookie = require('tracker-cookie')
+let trackerFlash = require('tracker-flash-message')
 
 
 
@@ -94,6 +95,13 @@ let creator = function() {
 				app.use(cookieParser())
 				if(process.env.trackerSecretKey) {
 					app.use(trackerCookie(process.env.trackerSecretKey))
+					app.use(trackerFlash())
+					app.use((req, res, next) => {
+						req.getFlashMessages((messages) => {
+							res.locals.flashMessages = messages
+							next()
+						})
+					})
 				}
 				
 				app.use(this.routers.preStatic)
