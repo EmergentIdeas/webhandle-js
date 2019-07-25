@@ -112,7 +112,7 @@ let creator = function() {
 			    this.addStaticDir(path.join(this.projectRoot, 'public'))
 				
 							
-				app.set('view engine', 'jade');
+				app.set('view engine', 'pug');
 				
 				addRequestLogging(app)
 				require('./lib/templating/tripartite-request-scoped-renderer') (app, this)
