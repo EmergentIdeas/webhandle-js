@@ -4,6 +4,15 @@ A set of mostly configuration tools that makes it easy to use Express and
 associated technologies. It puts together great things that already work
 and documents how to solve common problems.
 
+## Adding Public Content
+
+```
+let webhandle = require('webhandle')
+webhandle.addStaticDir('/the/path/to/the/directory')
+```
+
+
+
 ## Templating
 
 Webhandle sets up [tripartite](https://www.npmjs.com/package/tripartite)
@@ -13,6 +22,15 @@ Jade/Pug templates to make it easy to start for those familiar with those langua
 
 As normal, render a template/page with `res.render('the-template-name')`. 
 Any member of `res.locals` is what gets referenced as data in the template.
+
+
+### Adding a Template Directory
+
+```
+let webhandle = require('webhandle')
+webhandle.addTemplateDir('/the/path/to/the/directory')
+```
+
 
 ### Output Filters
 
@@ -48,6 +66,38 @@ parser, cookie parser, etc.
 * primary: router for normal request handling
 * pageServer: renders templates in the pages folder
 * postPages: last chance if no pages are matched
+* errorHandlers: not normal routers, but a set run on an error
+* cleanup: "routers" for after the content has been served
+
+## Pages
+Pages are templates which can be served when matched by name from the URL. So, the
+URL /some/page will match a file in the pages folder some/page.tri.
+
+Pages also load page specific information from a json file of the same name, e.g.
+some/page.json. This can be used to template structured information or set things
+like page title and meta description.
+
+This information is loaded into `res.locals.page`.
+
+### Page Pre-load code
+Some pages need information loaded from the database or additional file. This can be done by a page preloader.
+The pre-loaders are run after the page specific information is loaded. The slide show,
+gallery, calendar event, or some other database identifier can be kept in the page data.
+
+```
+webhandle.pageServer.preRun.push((req, res, next) => {
+	let tag = req.query.eventTag || res.locals.page.eventTag
+	// load some information from the database about the event
+	next()
+})
+```
+
+
+
+## Data
+
+* project location on disk: webhandle.projectRoot
+
 
 ## session data tracking
 
@@ -72,4 +122,23 @@ Clear like:
 ```
 res.track()
 ````
+
+### 'Flash' Messages
+These are messages, stored in a secure cookie, passed to the client and available on the next request.
+Used for storing an error/success message when the server will be issuing a redirect instead of rendering
+a response page.
+
+Store:
+```
+res.addFlashMessage('this is the message', (err) => {
+	// Do not end the response until the callback, or the encrypted cookie may not get generated.
+})
+```
+
+Retrieve:
+```
+req.getFlashMessages((messages /*array*/) => {
+	// errors are swallowed
+})
+```
 

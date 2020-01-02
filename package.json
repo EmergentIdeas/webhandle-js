@@ -1,6 +1,6 @@
 {
   "name": "webhandle",
-  "version": "1.0.21",
+  "version": "1.0.22",
   "description": "A micro-cms toolkit",
   "main": "webhandle.js",
   "scripts": {
