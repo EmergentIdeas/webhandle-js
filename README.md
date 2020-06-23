@@ -52,13 +52,12 @@ piped through filters as a whole document, so you'd be able to reparse it with
 
 
 ## Routing
-Express routing is infinitely, but within a framework, some of that flexibility 
-is lost unless it is planned in. Webhandle plans that flexibility by adding a 
+Express routing is infinitely flexible. Most projects have an understandable, more
+constrained request lifecyle though. Webhandle plans that flexibility by adding a 
 router for each point in the request lifecycle.
 
-The routers themselves are available from `require('webhandle').routers`. The 
-"root" router is `routers.primary`. The child routers, in the order they are
-called are:
+The routers themselves are available from `require('webhandle').routers`. 
+The child routers, in the order they are called are:
 
 * routerPreParmParse: a chance to process the request before the body parser, url
 parser, cookie parser, etc.

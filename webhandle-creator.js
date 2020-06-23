@@ -212,10 +212,21 @@ let creator = function() {
 						callback(content)
 					}
 					else {
-						if(templateCache) {
-							templateCache[name] = null
-						}
-						callback(null)
+						fs.readFile(path + '/' + name + '.html', function(err, buffer) {
+							if(!err) {
+								let content = buffer.toString()
+								if(templateCache) {
+									templateCache[name] = content
+								}
+								callback(content)
+							}
+							else {
+								if(templateCache) {
+									templateCache[name] = null
+								}
+								callback(null)
+							}
+						})
 					}
 				})
 			})
