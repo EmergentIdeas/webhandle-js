@@ -1,6 +1,6 @@
 {
   "name": "webhandle",
-  "version": "1.0.23",
+  "version": "1.0.24",
   "description": "A micro-cms toolkit",
   "main": "webhandle.js",
   "scripts": {
@@ -46,6 +46,6 @@
     "tripartite": "^1.0.14",
     "underscore": "^1.8.3",
     "webhandle-menus-1": "^1.0.3",
-    "webhandle-page-server": "^1.0.6"
+    "webhandle-page-server": "^1.0.10"
   }
 }

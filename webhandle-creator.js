@@ -105,6 +105,20 @@ let creator = function() {
 				}
 				
 				app.use(this.routers.preStatic)
+				
+				
+				this.routers.preStatic.use((req, res, next) => {
+					try {
+						let langHeader = req.query['Accept-Language'] || req.get('Accept-Language')
+						if(langHeader) {
+							res.languages = langHeader.split(',').map(lang => {
+								return lang.split(';')[0]
+							}).map(lang => lang.toLowerCase()).filter(lang => !lang.includes('..')).filter(lang => !lang.includes('!')).filter(lang => !lang.includes('/')).filter(lang => !lang.includes('__'))
+						}
+					}
+					catch(ex) {log.error(ex)}
+					next()
+				})
 
 				this.addTemplateDir(path.join(this.projectRoot, 'views'))
 			    this.addTemplateDir(path.join(this.projectRoot, 'pages'))
