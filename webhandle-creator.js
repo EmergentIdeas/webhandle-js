@@ -12,7 +12,9 @@ let FileSink = require('file-sink')
 
 var express = require('express');
 var multer = require('multer')
-var upload = multer()
+var upload = multer({
+	dest: process.env.fileUploadDest
+})
 
 let redirectPreprocessor = require('./lib/conventions/redirect-preprocessing.js')
 let trackerCookie = require('tracker-cookie')
