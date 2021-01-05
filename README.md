@@ -141,3 +141,11 @@ req.getFlashMessages((messages /*array*/) => {
 })
 ```
 
+## Events
+
+Complex environments required decoupled notificiations. There are a set of name event emitters at `webhandle.events`. Feel free to add your own.
+
+A general purpose emitter is available at `webhandle.events.global`. A pattern is to issue object change notificiations like:
+
+```
+webhandle.events.global.emit('object-change', { /* the object */}, changeType /* create, update, delete */)

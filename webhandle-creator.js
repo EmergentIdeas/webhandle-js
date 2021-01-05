@@ -20,7 +20,7 @@ let redirectPreprocessor = require('./lib/conventions/redirect-preprocessing.js'
 let trackerCookie = require('tracker-cookie')
 let trackerFlash = require('tracker-flash-message')
 
-
+const EventEmitter = require('events');
 
 let routers = {
 	preStatic: express.Router(),
@@ -73,6 +73,9 @@ let creator = function() {
 		routerPreParmParse: routers.preParmParse,
 		resourceVersion: new Date().getTime(),
 		deferredInitializers: [],
+		events: {
+			global: new EventEmitter()
+		},
 		
 		
 		init: function(app, callback) {
