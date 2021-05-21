@@ -68,6 +68,17 @@ parser, cookie parser, etc.
 * errorHandlers: not normal routers, but a set run on an error
 * cleanup: "routers" for after the content has been served
 
+## Parameters, Body, Query, Files
+
+Data from http requests are accessed in the normal Express way. Post parameters are in
+`req.body`. Route parameters (/users/:userId/books/:bookId) are available in
+`re.params`. Query parameters (/books?bookId=12) are available at `req.query`. 
+
+Uploaded files are available at `req.files`, an array of file objects. By default, 
+each file content is available as a buffer in memory.  Each file object has the keys:
+```fieldname, originalname, encoding, mimetype, buffer, size```
+
+
 ## Pages
 Pages are templates which can be served when matched by name from the URL. So, the
 URL /some/page will match a file in the pages folder some/page.tri.
@@ -139,6 +150,10 @@ Retrieve:
 req.getFlashMessages((messages /*array*/) => {
 	// errors are swallowed
 })
+```
+Access flash messages in templates like:
+```
+__flashMessages::message-processing-template__
 ```
 
 ## Events
