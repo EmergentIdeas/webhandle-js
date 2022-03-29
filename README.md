@@ -49,6 +49,15 @@ You can use either a function or a stream as the filter. Generally, output is
 piped through filters as a whole document, so you'd be able to reparse it with 
 `cheerio` or do any other document level work required.
 
+Post-processing a form to add values is makes creating forms, even for editing,
+no more difficult than creating the html.
+
+```
+const formInjector = require('form-value-injector')
+res.addFilter((chunk) => formInjector(chunk, theObjectWhichContainsTheDataToBePutIntoTheForm))
+
+```
+
 
 
 ## Routing
@@ -164,3 +173,16 @@ A general purpose emitter is available at `webhandle.events.global`. A pattern i
 
 ```
 webhandle.events.global.emit('object-change', { /* the object */}, changeType /* create, update, delete */)
+
+## Page Rendering
+
+Templates in the ```pages``` directory are, by default, rendered in response to a url that matches the path within the pages directory if no other piece of code has handled that URL. Page rendering has steps in addition to just rendering the template (loading a page's json file, running page pre-render code).
+
+If a handler wants to have a page rendered, it can set the page path to be any template path like below and the handler can call ```next()``` to pass eventual control to the page renderer.
+
+
+```
+req.pagePath = 'page-template-name'
+```
+
+
