@@ -39,7 +39,7 @@
     "mongo-db-loader": "^1.0.1",
     "multer": "^1.3.0",
     "pausing-transform": "^1.0.1",
-    "pug": "^2.0.4",
+    "pug": "^3.0.1",
     "serve-static": "^1.13.1",
     "tracker-cookie": "^1.0.1",
     "tracker-flash-message": "^1.0.1",
