@@ -68,7 +68,7 @@ router for each point in the request lifecycle.
 The routers themselves are available from `require('webhandle').routers`. 
 The child routers, in the order they are called are:
 
-* routerPreParmParse: a chance to process the request before the body parser, url
+* preParmParse: a chance to process the request before the body parser, url
 parser, cookie parser, etc.
 * preStatic: after the request is processed before static file resources are served
 * primary: router for normal request handling
@@ -184,5 +184,21 @@ If a handler wants to have a page rendered, it can set the page path to be any t
 ```
 req.pagePath = 'page-template-name'
 ```
+
+## Environment Data
+
+Services and data which are automatically loaded by webhandle are listed below.
+
+### Databases
+
+Available at:
+
+webhandle.dbs
+
+Where the keys are the database names. The database will have a member <code>db</code> if it is a mongo db (probable) and that will be an object from the mongo package from which you can access the normal objects. 
+
+Getting the products collection will look like:
+
+webhandle.dbs['mydb'].db.collection('products')
 
 
