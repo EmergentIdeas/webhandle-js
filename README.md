@@ -11,6 +11,13 @@ let webhandle = require('webhandle')
 webhandle.addStaticDir('/the/path/to/the/directory')
 ```
 
+If you'd like to put that content at a url, use like:
+
+
+```
+let webhandle = require('webhandle')
+webhandle.addStaticDir('/the/path/to/the/directory', {urlPrefix: '/foo/bar'})
+```
 
 
 ## Templating
