@@ -3,7 +3,7 @@
 /**
  * Module dependencies.
  */
-module.exports = function(app) {
+module.exports = function(app, {port = 3000} = {}) {
     var debug = require('filter-log')('wh-template:server');
     var http = require('http');
 
@@ -11,7 +11,7 @@ module.exports = function(app) {
      * Get port from environment and store in Express.
      */
 
-    var port = normalizePort(process.env.PORT || '3000');
+    var port = normalizePort(port || process.env.PORT || '3000');
     app.set('port', port);
 
     /**
@@ -19,6 +19,8 @@ module.exports = function(app) {
      */
 
     var server = http.createServer(app);
+	
+	app.server = app.webhandle.server = server
 
     /**
      * Listen on provided port, on all network interfaces.
