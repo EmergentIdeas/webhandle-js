@@ -75,9 +75,10 @@ router for each point in the request lifecycle.
 The routers themselves are available from `require('webhandle').routers`. 
 The child routers, in the order they are called are:
 
-* preParmParse: a chance to process the request before the body parser, url
-parser, cookie parser, etc.
+* preParmParse: a chance to process the request before the body parser, url parser, cookie parser, etc.
+* requestParse: converts the raw http info into more usable objects on the request
 * preStatic: after the request is processed before static file resources are served
+* staticServers: serves file content
 * primary: router for normal request handling
 * pageServer: renders templates in the pages folder
 * postPages: last chance if no pages are matched
@@ -88,7 +89,7 @@ parser, cookie parser, etc.
 
 Data from http requests are accessed in the normal Express way. Post parameters are in
 `req.body`. Route parameters (/users/:userId/books/:bookId) are available in
-`re.params`. Query parameters (/books?bookId=12) are available at `req.query`. 
+`req.params`. Query parameters (/books?bookId=12) are available at `req.query`. 
 
 Uploaded files are available at `req.files`, an array of file objects. By default, 
 each file content is available as a buffer in memory.  Each file object has the keys:
@@ -180,6 +181,7 @@ A general purpose emitter is available at `webhandle.events.global`. A pattern i
 
 ```
 webhandle.events.global.emit('object-change', { /* the object */}, changeType /* create, update, delete */)
+```
 
 ## Page Rendering
 

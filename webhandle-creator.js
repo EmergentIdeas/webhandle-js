@@ -2,143 +2,153 @@ let profiles = require('./lib/profiles')
 let filog = require('filter-log')
 let serveStatic = require('serve-static')
 let commingle = require('commingle')
-let _ = require('underscore')
 let fs = require('fs')
-let cookieParser = require('cookie-parser');
-let bodyParser = require('body-parser');
 let path = require('path');
-let tri = require('tripartite')
 let FileSink = require('file-sink')
 
 var express = require('express');
-var multer = require('multer')
-var upload = multer({
-	dest: process.env.fileUploadDest
-})
+const pageServer = require('webhandle-page-server')
 
-let redirectPreprocessor = require('./lib/conventions/redirect-preprocessing.js')
-let trackerCookie = require('tracker-cookie')
-let trackerFlash = require('tracker-flash-message')
 
 const EventEmitter = require('events');
 
+const initializeTripartite = require('./lib/initializers/tripartite-templates')
+const initializePreParm = require('./lib/initializers/pre-parm-parse')
+const initializeRequestParse = require('./lib/initializers/request-parse')
+const initializeLanguageHeaders = require('./lib/initializers/language-headers')
+const initializeRequestLogging = require('./lib/initializers/request-logging')
+const initializeWebhandleMenus = require('./lib/initializers/menus')
+const initializeStaticServers = require('./lib/initializers/static-servers')
+const initializeErrorHandlingAndCleanup = require('./lib/initializers/error-handling-and-cleanup')
+const initializeNotFound = require('./lib/initializers/not-found')
+
+const addTemplateDir = require('./lib/methods/add-template-directory')
+const addStaticDir = require('./lib/methods/add-static-directory')
+
 let routers = {
-	preStatic: express.Router(),
 	preParmParse: express.Router(),
+	requestParse: express.Router(),
+	preStatic: express.Router(),
+	staticServers: express.Router(),
 	primary: express.Router(),
+	pageServer: null,
 	postPages: express.Router(),
+	notFound: express.Router(),
 	errorHandlers: express.Router(),
 	cleanup: express.Router()
 }
 
-const pageServer = require('webhandle-page-server')
-const menuLoader = require('webhandle-menus-1')
 
-let logFilter = function(entry) {
-	return entry.level && entry.level >= filog.levels.INFO
-}
-
-let addRequestLogging = function(app) {
-	app.use(function(req, res, next) {
-		let rl = _.extend({}, req)
-		delete rl.client
-		delete rl.next
-		delete rl.connection
-		delete rl.res
-		delete rl.socket
-		delete rl._events
-		
-	    log.debug(rl)
-	    next()
-	});
-}
 
 
 let log = filog('webhandle')
 
-let creator = function() {
+let creator = function(options) {
 
 	let webhandle = {
+		/* the express app */
+		app: null,
+
 		profile: profiles.SIMPLE,
+
+		/* a list of directories which contain views */
 		views: [],
+
+		/* functions which load templates */
 		templateLoaders: [],
+
+		/* a list of directories which contain static files to server */
 		staticPaths: [],
+		
+		/* the servers of files */
 		staticServers: [],
+		
+		/* FileSink objects which allow access to static resources */
 		sinks: {},
+		
+		/* services created to access and process data */
 		services: {},
+		
+		/* handlers for user requests */
 		routers: routers,
+		
+		/* the normal sort of place where you'd add your own code */
 		router: routers.primary,
+		
+		/* the absolute path of the project */
 		projectRoot: null,
+		
+		/* named routers */
 		routerPreStatic: routers.preStatic,
 		routerPreParmParse: routers.preParmParse,
+		
+		/* a counter let you know when caches should be invalidated */
 		resourceVersion: new Date().getTime(),
-		deferredInitializers: [],
+		
+		/* event emitters for communications between decoupled components */
 		events: {
 			global: new EventEmitter()
 		},
+
+		/* code to be run after the profile setup is complete but before the environment
+		 * is ready. This would be things like database connection and setup, acquiring 
+		 * licenses, registering existance, ect.
+		 */
+		deferredInitializers: [],
 		
+		defaultLogLevel: filog.levels.INFO,
+		
+		defaultLogFilter: null,
+		
+		addTemplateDir: addTemplateDir,
+
+		addStaticDir: addStaticDir,
+		
+		simpleinit: require('./lib/profiles/simple')
 		
 		init: function(app, callback) {
+			this.app = app
+			app.webhandle = app.wh = this
+
+			
+			// provide a sink for the location of this app
+			this.sinks.project = new FileSink(this.projectRoot)
+			
+			let initMethod = this.profile + 'init'
+			if(this[initMethod]) {
+				this[initMethod]()
+			}
+
 			if(this.profile == profiles.SIMPLE) {
-				
-				this.sinks.project = new FileSink(this.projectRoot)
-				
-				filog.defineProcessor('standard', {}, process.stdout, logFilter)
-				app.use(this.routers.preParmParse)
-				
-				this.routers.preParmParse.use(redirectPreprocessor)
-				
-				
-				app.use(bodyParser.json({
-					limit: process.env.maxUploadSize || '5mb'
-				}))
-				app.use(bodyParser.urlencoded({
-					limit: process.env.maxUploadSize || '5mb',
-				    extended: false
-				}));
-				app.use(upload.any())
-				app.use(cookieParser())
-				if(process.env.trackerSecretKey) {
-					app.use(trackerCookie(process.env.trackerSecretKey))
-					app.use(trackerFlash())
-					app.use((req, res, next) => {
-						req.getFlashMessages((messages) => {
-							res.locals.flashMessages = messages
-							next()
-						})
-					})
-				}
-				
-				app.use(this.routers.preStatic)
-				
-				
-				this.routers.preStatic.use((req, res, next) => {
-					try {
-						let langHeader = req.query['Accept-Language'] || req.get('Accept-Language')
-						if(langHeader) {
-							res.languages = langHeader.split(',').map(lang => {
-								return lang.split(';')[0]
-							}).map(lang => lang.toLowerCase()).filter(lang => !lang.includes('..')).filter(lang => !lang.includes('!')).filter(lang => !lang.includes('/')).filter(lang => !lang.includes('__'))
-						}
+				// send all messages at info or above to std out
+				if(!this.defaultLogFilter) {
+					this.defaultLogFilter = (entry) => {
+						return entry.level && entry.level >= webhandle.defaultLogLevel
 					}
-					catch(ex) {log.error(ex)}
-					next()
+				}
+				filog.defineProcessor('standard', {}, process.stdout, (entry) => {
+					return webhandle.defaultLogFilter(entry)
 				})
 
-				this.addTemplateDir(path.join(this.projectRoot, 'views'))
-			    this.addTemplateDir(path.join(this.projectRoot, 'pages'))
+				
 
-			    this.addStaticDir(path.join(this.projectRoot, 'public'))
+				app.use(this.routers.preParmParse)
+				app.use(this.routers.requestParse)
+
+				// We've got a request ready now. The normal first thing to do is to see if there's
+				// any static resources which match our URL. However, sometimes will want to preempt 
+				// access to that static content, modify the url based on language or location, or do
+				// some other task which needs to be done before the static file servers get a crack.
+				app.use(this.routers.preStatic)
+
+				// Set up a handler which will will call all the static severs
+				// This will use the static servers for each request, so later
+				// additions of static severs will always be called as well
+				app.use(this.routers.staticServers)
 				
-							
-				app.set('view engine', 'pug');
-				
-				addRequestLogging(app)
-				require('./lib/templating/tripartite-request-scoped-renderer') (app, this)
-				require('./lib/templating/add-simple-template-data-functions') (tri, this)
-				
-				this.initStaticServers(app)
-				
+				// Add the primary router. This is for all the normal application code and for any
+				// code which would like to populate data for rendering onto a templated paged which
+				// matches the request url
 				app.use(this.routers.primary)
 				
 				this.pageServer = pageServer(path.join(this.projectRoot, 'pages'))
@@ -146,9 +156,34 @@ let creator = function() {
 				
 				app.use(this.routers.postPages)
 				
-				// Add code for webhandle menus
-				this.addTemplateDir(path.join(menuLoader.__dirname, 'views'))
-				this.pageServer.preRun.push(menuLoader(path.join(this.projectRoot, 'menus')))
+				// a last chance to handle things when nothing else has
+				app.use(this.routers.notFound)
+
+				
+				initializeTripartite(this)	
+
+				// Set up routes where we're doing redirects or rewrites of the url before we
+				// reall start processing the request
+				initializePreParm(this)
+				
+				// Setup basic housekeeping where we parse the body, handle file uploads, etc and get those
+				// into the request object
+				initializeRequestParse(this)
+				
+				// list out the preferred languages supplied either by HTTP header or query parameter
+				initializeLanguageHeaders(this.routers.preStatic)
+
+				// log all requests at the debug level				
+				initializeRequestLogging(this.routers.preStatic)
+
+				initializeStaticServers(this)
+				
+				// Load info from the menus to be available for the pages
+				initializeWebhandleMenus(this)
+				
+				// throw a 404 error if nobody else has done anything
+				initializeNotFound(this)
+				
 				
 				let mongoDbLoader = require('mongo-db-loader/process-db-info')
 				
@@ -158,48 +193,9 @@ let creator = function() {
 						next()
 					})
 				})
+				
+				initializeErrorHandlingAndCleanup(this)
 
-				this.routers.errorHandlers.use(function(req, res, next) {
-					if(res.rethrowError) {
-						next(res.rethrowError)
-					}
-					else {
-						next()
-					}
-				})
-				this.routers.cleanup.use(function(req, res, next) {
-					if(res.rethrowError) {
-						next(res.rethrowError)
-					}
-					else {
-						next()
-					}
-				})
-
-				app.use(function(req, res, next) {
-				    let err = new Error('Not Found');
-				    err.status = 404;
-				    next(err);
-				});
-				
-				app.use(function(err, req, res, next) {
-					if(err) {
-						res.rethrowError = err
-					}
-					next()
-				})
-				app.use(this.routers.errorHandlers)
-				
-				app.use(function(err, req, res, next) {
-					if(err) {
-						res.rethrowError = err
-					}
-					next()
-				})
-				
-				app.use(this.routers.cleanup)
-				
-				// catch 404 and forward to error handler
 			}
 			
 			
@@ -209,75 +205,8 @@ let creator = function() {
 				}
 			})
 			
-		},
-		
-		addTemplateDir: function(path, options) {
-			let templateCache
-			if(options && options.immutable) {
-				templateCache = {}
-			}
-			
-			this.views.push(path)
-			this.templateLoaders.push(function(name, callback) {
-				if(templateCache && name in templateCache) {
-					callback(templateCache[name])
-				}
-				fs.readFile(path + '/' + name + '.tri', function(err, buffer) {
-					if(!err) {
-						let content = buffer.toString()
-						if(templateCache) {
-							templateCache[name] = content
-						}
-						callback(content)
-					}
-					else {
-						fs.readFile(path + '/' + name + '.html', function(err, buffer) {
-							if(!err) {
-								let content = buffer.toString()
-								if(templateCache) {
-									templateCache[name] = content
-								}
-								callback(content)
-							}
-							else {
-								if(templateCache) {
-									templateCache[name] = null
-								}
-								callback(null)
-							}
-						})
-					}
-				})
-			})
-		},
-		
-		/**
-		 * Adds a directory to be served as static content.
-		 * @param {string} path The directory to be served
-		 * @param {object} [options]
-		 * @param {string} [options.urlPrefix] A prefix the url must have to access the content
-		 * in the directory. So if the path is /foo which contains a file bar.txt and the urlPrefix
-		 * is /baz then the url /baz/bar.txt will access the file.
-		 */
-		addStaticDir: function(path, {urlPrefix} = {}) {
-			if(!urlPrefix) {
-				this.staticPaths.push(path)
-				this.staticServers.push(serveStatic(path))
-			}
-			else {
-				let router = express.Router()
-				router.use(urlPrefix, serveStatic(path))
-				this.staticServers.push(router)
-			}
-		},
-		
-		initStaticServers: function(app) {
-			app.use(function(req, res, next) {
-				commingle([...webhandle.staticServers])(req, res, () => {
-					next()
-				})
-			});
 		}
+		
 
 	}
 	
