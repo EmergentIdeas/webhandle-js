@@ -208,6 +208,8 @@ Where the keys are the database names. The database will have a member <code>db<
 
 Getting the products collection will look like:
 
+```
 webhandle.dbs['mydb'].db.collection('products')
+```
 
 
