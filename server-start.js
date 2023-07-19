@@ -3,7 +3,7 @@
 /**
  * Module dependencies.
  */
-module.exports = function(app, {port = 3000} = {}) {
+module.exports = function(app, {port} = {}) {
     var debug = require('filter-log')('wh-template:server');
     var http = require('http');
 
