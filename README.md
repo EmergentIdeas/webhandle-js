@@ -194,6 +194,15 @@ If a handler wants to have a page rendered, it can set the page path to be any t
 req.pagePath = 'page-template-name'
 ```
 
+If you want to render your own template but have all the stuff that usually runs before a page is rendered (load menus, set default env variables, etc).
+
+```
+webhandle.pageServer.prerenderSetup(req, res, {}, () => {
+	res.render('the/template/to/render')
+})
+```
+			
+
 ## Environment Data
 
 Services and data which are automatically loaded by webhandle are listed below.
