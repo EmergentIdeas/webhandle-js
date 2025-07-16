@@ -1,6 +1,6 @@
 {
   "name": "webhandle",
-  "version": "1.0.33",
+  "version": "1.0.34",
   "description": "A micro-cms toolkit",
   "main": "webhandle.js",
   "scripts": {
@@ -27,6 +27,7 @@
   },
   "homepage": "https://github.com/EmergentIdeas/webhandle-js#readme",
   "dependencies": {
+    "@webhandle/id-generator": "^1.0.4",
     "body-parser": "^1.17.2",
     "commingle": "^0.0.4",
     "cookie-parser": "^1.4.3",
